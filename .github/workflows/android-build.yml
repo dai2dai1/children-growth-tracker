@@ -33,6 +33,12 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Install Android SDK components
+      run: |
+        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-34"
+        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "build-tools;34.0.0"
+        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "platform-tools"
+
     - name: Cache Gradle packages
       uses: actions/cache@v3
       with:
@@ -62,22 +68,9 @@ jobs:
       working-directory: android
       run: ./gradlew clean --no-daemon
 
-    - name: Build Android APK (with retry)
+    - name: Build Android APK
       working-directory: android
-      run: |
-        for i in {1..3}; do
-          echo "Build attempt $i"
-          if ./gradlew assembleRelease --no-daemon --stacktrace --offline; then
-            echo "Build successful on attempt $i"
-            break
-          elif [ $i -eq 3 ]; then
-            echo "All build attempts failed"
-            exit 1
-          else
-            echo "Build attempt $i failed, retrying..."
-            sleep 30
-          fi
-        done
+      run: ./gradlew assembleRelease --no-daemon --stacktrace
 
     - name: List build outputs
       run: find android -name "*.apk" -type f
@@ -87,8 +80,7 @@ jobs:
       if: success()
       with:
         name: children-growth-tracker-apk
-        path: |
-          android/app/build/outputs/apk/release/*.apk
+        path: android/app/build/outputs/apk/release/*.apk
         retention-days: 30
 
     - name: Create GitHub Release

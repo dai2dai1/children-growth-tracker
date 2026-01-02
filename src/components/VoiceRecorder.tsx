@@ -88,18 +88,33 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   }
 
   const handleStopRecording = async () => {
-    try {
-      const text = await VoiceService.stopRecording()
-      setTranscription(text)
-      onTranscription?.(text)
+    if (!isRecording) {
+      setError('没有正在进行的录音')
+      return
+    }
 
-      // 解析语音文字
-      if (children && children.length > 0) {
-        const parseResult = VoiceParser.parseVoiceText(text, children)
-        onParsed?.(parseResult)
+    try {
+      setError('') // 清除之前的错误
+      const text = await VoiceService.stopRecording()
+      
+      if (text.trim()) {
+        setTranscription(text)
+        onTranscription?.(text)
+
+        // 解析语音文字
+        if (children && children.length > 0) {
+          const parseResult = VoiceParser.parseVoiceText(text, children)
+          onParsed?.(parseResult)
+        }
+      } else {
+        setError('没有识别到语音内容，请重试')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '停止录音失败')
+      console.error('停止录音错误:', err)
+      const errorMessage = err instanceof Error ? err.message : '停止录音失败'
+      setError(errorMessage)
+      // 强制重置录音状态
+      setIsRecording(false)
     }
   }
 
@@ -137,6 +152,22 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             </span>
             {isRecording ? '停止录音' : (permissionGranted ? '语音记录' : '允许麦克风')}
           </Button>
+          
+          {isRecording && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                VoiceService.forceStop()
+                setIsRecording(false)
+                setError('')
+                setTranscription('')
+              }}
+              className={styles.forceStopButton}
+            >
+              强制停止
+            </Button>
+          )}
         </div>
 
         {isRecording && (

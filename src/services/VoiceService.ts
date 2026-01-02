@@ -147,21 +147,46 @@ class VoiceService {
     }
 
     return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('停止录音超时'))
+      }, 5000) // 5秒超时
+
       const originalOnEnd = this.recognition?.onend
+      const originalOnError = this.recognition?.onerror
 
       if (this.recognition) {
         this.recognition.onend = (event: Event) => {
+          clearTimeout(timeout)
+          // 恢复原始回调
+          this.recognition!.onend = originalOnEnd
+          this.recognition!.onerror = originalOnError
+          // 调用原始回调
           originalOnEnd?.call(this.recognition, event)
           resolve(this.transcript.trim())
         }
 
         this.recognition.onerror = (event: SpeechRecognitionEvent) => {
+          clearTimeout(timeout)
+          // 恢复原始回调
+          this.recognition!.onend = originalOnEnd
+          this.recognition!.onerror = originalOnError
           const errorMessage = this.getErrorMessage(event.error || 'unknown')
           reject(new Error(errorMessage))
         }
-      }
 
-      this.recognition?.stop()
+        try {
+          this.recognition.stop()
+        } catch (error) {
+          clearTimeout(timeout)
+          // 恢复原始回调
+          this.recognition.onend = originalOnEnd
+          this.recognition.onerror = originalOnError
+          reject(new Error('停止录音失败'))
+        }
+      } else {
+        clearTimeout(timeout)
+        reject(new Error('语音识别服务不可用'))
+      }
     })
   }
 
@@ -220,8 +245,29 @@ class VoiceService {
    * 中止录音
    */
   abort(): void {
-    this.recognition?.abort()
-    this.isRecording = false
+    try {
+      this.recognition?.abort()
+    } catch (error) {
+      console.error('中止录音失败:', error)
+    } finally {
+      this.isRecording = false
+      this.transcript = ''
+    }
+  }
+
+  /**
+   * 强制停止录音（紧急情况使用）
+   */
+  forceStop(): void {
+    try {
+      this.recognition?.stop()
+      this.recognition?.abort()
+    } catch (error) {
+      console.error('强制停止录音失败:', error)
+    } finally {
+      this.isRecording = false
+      this.transcript = ''
+    }
   }
 }
 

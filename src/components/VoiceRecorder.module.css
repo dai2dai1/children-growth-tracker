@@ -37,7 +37,20 @@
 .buttonGroup {
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.forceStopButton {
+  background: rgba(255, 59, 48, 0.3);
+  border: 1px solid rgba(255, 59, 48, 0.5);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  backdrop-filter: blur(10px);
 }
 
 .micButton {

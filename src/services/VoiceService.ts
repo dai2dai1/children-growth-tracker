@@ -77,7 +77,7 @@ class VoiceService {
   private setupRecognition(): void {
     if (!this.recognition) return
 
-    this.recognition.continuous = false
+    this.recognition.continuous = true  // 改为连续识别
     this.recognition.interimResults = true
     this.recognition.language = 'zh-CN'
 
@@ -149,7 +149,7 @@ class VoiceService {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('停止录音超时'))
-      }, 5000) // 5秒超时
+      }, 10000) // 10秒超时
 
       const originalOnEnd = this.recognition?.onend
       const originalOnError = this.recognition?.onerror

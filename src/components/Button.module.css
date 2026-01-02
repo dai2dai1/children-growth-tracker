@@ -1,0 +1,81 @@
+.button {
+  font-family: var(--font-family-base);
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  white-space: nowrap;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 尺寸 */
+.size-sm {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.size-md {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-base);
+}
+
+.size-lg {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  font-size: var(--font-size-lg);
+}
+
+/* 变体 */
+.variant-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.variant-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.variant-secondary {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
+.variant-secondary:hover {
+  background-color: var(--color-secondary-dark);
+}
+
+.variant-success {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.variant-success:hover {
+  background-color: var(--color-success-dark);
+}
+
+.variant-danger {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.variant-danger:hover {
+  background-color: var(--color-error-dark);
+}

@@ -25,9 +25,11 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const [transcription, setTranscription] = useState('')
   const [error, setError] = useState('')
   const [isSupported, setIsSupported] = useState(false)
+  const [permissionGranted, setPermissionGranted] = useState(false)
 
   useEffect(() => {
     setIsSupported(VoiceService.isSupported())
+    checkMicrophonePermission()
 
     VoiceService.onResult((text) => {
       setTranscription(text)
@@ -50,7 +52,34 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     })
   }, [onTranscription])
 
+  const checkMicrophonePermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      setPermissionGranted(true)
+      stream.getTracks().forEach(track => track.stop()) // 停止流
+    } catch (err) {
+      setPermissionGranted(false)
+      setError('需要麦克风权限才能使用语音功能')
+    }
+  }
+
+  const requestPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      setPermissionGranted(true)
+      setError('')
+      stream.getTracks().forEach(track => track.stop())
+    } catch (err) {
+      setError('无法获取麦克风权限，请在浏览器设置中允许麦克风访问')
+    }
+  }
+
   const handleStartRecording = async () => {
+    if (!permissionGranted) {
+      await requestPermission()
+      return
+    }
+
     try {
       await VoiceService.startRecording()
     } catch (err) {
@@ -78,6 +107,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     return (
       <Card>
         <div className={styles.unsupported}>
+          <div className={styles.icon}>🚫</div>
+          <h3>不支持语音识别</h3>
           <p>您的浏览器不支持语音识别功能</p>
           <p>请使用 Chrome、Edge 或其他支持 Web Speech API 的浏览器</p>
         </div>
@@ -86,30 +117,58 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   }
 
   return (
-    <Card elevated>
+    <Card elevated className={styles.voiceCard}>
       <div className={styles.container}>
+        <div className={styles.header}>
+          <h3 className={styles.title}>🎤 语音记录</h3>
+          <p className={styles.subtitle}>说出孩子姓名和积分变化</p>
+        </div>
+
         <div className={styles.buttonGroup}>
           <Button
             variant={isRecording ? 'danger' : 'primary'}
             size="lg"
             onClick={isRecording ? handleStopRecording : handleStartRecording}
-            className={styles.micButton}
+            className={`${styles.micButton} ${isRecording ? styles.recording : ''}`}
+            disabled={!isSupported}
           >
-            <span className={styles.micIcon}>🎤</span>
-            {isRecording ? '停止录音' : '开始录音'}
+            <span className={styles.micIcon}>
+              {isRecording ? '🔴' : '🎤'}
+            </span>
+            {isRecording ? '停止录音' : (permissionGranted ? '语音记录' : '允许麦克风')}
           </Button>
         </div>
 
-        {isRecording && <div className={styles.recordingIndicator}>正在录音...</div>}
-
-        {transcription && (
-          <div className={styles.transcription}>
-            <p className={styles.label}>识别文字：</p>
-            <p className={styles.text}>{transcription}</p>
+        {isRecording && (
+          <div className={styles.recordingIndicator}>
+            <div className={styles.pulse}></div>
+            <span>正在聆听...</span>
           </div>
         )}
 
-        {error && <div className={styles.error}>{error}</div>}
+        {transcription && (
+          <div className={styles.transcription}>
+            <div className={styles.transcriptionHeader}>
+              <span className={styles.transcriptionIcon}>💬</span>
+              <span className={styles.label}>识别结果</span>
+            </div>
+            <div className={styles.transcriptionText}>{transcription}</div>
+          </div>
+        )}
+
+        {error && (
+          <div className={styles.error}>
+            <span className={styles.errorIcon}>⚠️</span>
+            {error}
+          </div>
+        )}
+
+        {!permissionGranted && !error && (
+          <div className={styles.permissionHint}>
+            <span className={styles.hintIcon}>💡</span>
+            点击按钮允许麦克风权限
+          </div>
+        )}
       </div>
     </Card>
   )

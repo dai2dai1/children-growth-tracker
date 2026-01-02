@@ -63,7 +63,7 @@ function AppContent(): React.ReactElement {
   }
 
   const handleEditAvatar = (childId: string) => {
-    const child = state.children.find(c => c.id === childId)
+    const child = state.children.find((c: any) => c.id === childId)
     if (child) {
       setSelectedAvatar(child.avatar)
       setEditingChildId(childId)
@@ -73,7 +73,7 @@ function AppContent(): React.ReactElement {
 
   const handleAvatarChange = async (newAvatar: string) => {
     if (editingChildId) {
-      const child = state.children.find(c => c.id === editingChildId)
+      const child = state.children.find((c: any) => c.id === editingChildId)
       if (child) {
         await updateChild({ ...child, avatar: newAvatar })
       }
@@ -265,8 +265,8 @@ function AppContent(): React.ReactElement {
           ) : (
             <div className={styles.childrenGrid}>
               {state.children
-                .sort((a, b) => b.totalScore - a.totalScore)
-                .map((child, index) => (
+                .sort((a: any, b: any) => b.totalScore - a.totalScore)
+                .map((child: any, index: number) => (
                 <Card key={child.id} className={styles.childCard}>
                   <button
                     className={styles.avatarButton}
@@ -307,10 +307,10 @@ function AppContent(): React.ReactElement {
           ) : (
             <div className={styles.eventsList}>
               {state.events
-                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
                 .slice(0, 10)
-                .map((event) => {
-                  const child = state.children.find(c => c.id === event.childId)
+                .map((event: any) => {
+                  const child = state.children.find((c: any) => c.id === event.childId)
                   return (
                     <Card key={event.id} className={styles.eventItem}>
                       <div className={styles.eventHeader}>

@@ -39,10 +39,6 @@ jobs:
         $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "build-tools;34.0.0"
         $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "platform-tools"
 
-    - name: Generate debug keystore
-      run: |
-        keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-
     - name: Cache Gradle packages
       uses: actions/cache@v3
       with:
@@ -72,16 +68,22 @@ jobs:
       working-directory: android
       run: ./gradlew clean --no-daemon
 
-    - name: Build both Debug and Release APK
+    - name: Build Debug APK (recommended for installation)
       working-directory: android
+      run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+    - name: Build Release APK
+      working-directory: android
+      run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+    - name: List all APK files
       run: |
-        ./gradlew assembleDebug --no-daemon --stacktrace
-        ./gradlew assembleRelease --no-daemon --stacktrace
+        echo "=== Debug APK ==="
+        find android -name "*debug*.apk" -type f -exec ls -la {} \;
+        echo "=== Release APK ==="
+        find android -name "*release*.apk" -type f -exec ls -la {} \;
 
-    - name: List build outputs
-      run: find android -name "*.apk" -type f
-
-    - name: Upload Debug APK
+    - name: Upload Debug APK (Most Compatible)
       uses: actions/upload-artifact@v4
       if: success()
       with:
@@ -106,5 +108,23 @@ jobs:
         files: |
           android/app/build/outputs/apk/debug/*.apk
           android/app/build/outputs/apk/release/*.apk
-        generate_release_notes: true
+        body: |
+          ## 📱 APK 下载说明
+          
+          **推荐下载**: `app-debug.apk` (兼容性更好，更容易安装)
+          
+          如果 debug 版本无法安装，请尝试 `app-release.apk`
+          
+          ### 安装步骤:
+          1. 在手机设置中开启"允许安装未知来源应用"
+          2. 下载 APK 文件到手机
+          3. 点击 APK 文件进行安装
+          
+          ### 应用功能:
+          - ✅ 语音识别和智能解析
+          - ✅ 多儿童管理系统  
+          - ✅ 积分管理和统计
+          - ✅ 数据持久化存储
+          - ✅ 响应式移动界面
+        generate_release_notes: false
         token: ${{ secrets.GITHUB_TOKEN }}

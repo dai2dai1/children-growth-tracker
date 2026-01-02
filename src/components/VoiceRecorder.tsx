@@ -159,7 +159,26 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         {error && (
           <div className={styles.error}>
             <span className={styles.errorIcon}>⚠️</span>
-            {error}
+            <div>
+              <div>{error}</div>
+              {error.includes('麦克风权限') && (
+                <div style={{ marginTop: '12px', fontSize: '13px', lineHeight: '1.4' }}>
+                  <strong>📱 Android应用权限设置：</strong><br/>
+                  <div style={{ marginTop: '8px' }}>
+                    <strong>方法1：</strong><br/>
+                    • 长按应用图标 → 应用信息 → 权限 → 麦克风 → 允许<br/>
+                  </div>
+                  <div style={{ marginTop: '8px' }}>
+                    <strong>方法2：</strong><br/>
+                    • 设置 → 应用管理 → 儿童成长追踪器 → 权限 → 麦克风 → 允许<br/>
+                  </div>
+                  <div style={{ marginTop: '8px' }}>
+                    <strong>方法3：</strong><br/>
+                    • 设置 → 隐私/权限管理 → 麦克风 → 儿童成长追踪器 → 允许
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

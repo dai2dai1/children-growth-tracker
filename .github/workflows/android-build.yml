@@ -39,6 +39,10 @@ jobs:
         $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "build-tools;34.0.0"
         $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "platform-tools"
 
+    - name: Generate debug keystore
+      run: |
+        keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
     - name: Cache Gradle packages
       uses: actions/cache@v3
       with:
@@ -68,18 +72,28 @@ jobs:
       working-directory: android
       run: ./gradlew clean --no-daemon
 
-    - name: Build Android APK
+    - name: Build both Debug and Release APK
       working-directory: android
-      run: ./gradlew assembleRelease --no-daemon --stacktrace
+      run: |
+        ./gradlew assembleDebug --no-daemon --stacktrace
+        ./gradlew assembleRelease --no-daemon --stacktrace
 
     - name: List build outputs
       run: find android -name "*.apk" -type f
 
-    - name: Upload APK artifact
+    - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       if: success()
       with:
-        name: children-growth-tracker-apk
+        name: children-growth-tracker-debug-apk
+        path: android/app/build/outputs/apk/debug/*.apk
+        retention-days: 30
+
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: children-growth-tracker-release-apk
         path: android/app/build/outputs/apk/release/*.apk
         retention-days: 30
 
@@ -89,6 +103,8 @@ jobs:
       with:
         tag_name: v${{ github.run_number }}
         name: 儿童成长追踪器 v${{ github.run_number }}
-        files: android/app/build/outputs/apk/release/*.apk
+        files: |
+          android/app/build/outputs/apk/debug/*.apk
+          android/app/build/outputs/apk/release/*.apk
         generate_release_notes: true
         token: ${{ secrets.GITHUB_TOKEN }}
